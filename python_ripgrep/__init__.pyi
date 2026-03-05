@@ -26,6 +26,7 @@ def search(
     max_count: int | None = None,
     line_number: bool | None = None,
     multiline: bool | None = None,
+    hidden: bool | None = None,
 ) -> list[str]: ...
 def files(
     patterns: list[str],
@@ -41,4 +42,5 @@ def files(
     max_count: int | None = None,
     line_number: bool | None = None,
     multiline: bool | None = None,
+    hidden: bool | None = None,
 ) -> list[str]: ...

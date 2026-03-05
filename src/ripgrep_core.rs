@@ -26,6 +26,7 @@ pub struct PyArgs {
     pub max_count: Option<u64>,
     pub line_number: Option<bool>,
     pub multiline: Option<bool>,
+    pub hidden: Option<bool>,
 }
 
 #[pymethods]
@@ -45,6 +46,7 @@ impl PyArgs {
         max_count=None,
         line_number=None,
         multiline=None,
+        hidden=None,
     ))]
     fn new(
         patterns: Vec<String>, 
@@ -60,6 +62,7 @@ impl PyArgs {
         max_count: Option<u64>,
         line_number: Option<bool>,
         multiline: Option<bool>,
+        hidden: Option<bool>,
     ) -> Self {
         PyArgs {
             patterns,
@@ -75,6 +78,7 @@ impl PyArgs {
             max_count,
             line_number,
             multiline,
+            hidden,
         }
     }
 }
@@ -198,6 +202,10 @@ fn pyargs_to_hiargs(py_args: &PyArgs, mode: lowargs::Mode) -> anyhow::Result<HiA
         low_args.multiline = multiline;
     }
 
+    if let Some(hidden) = py_args.hidden {
+        low_args.hidden = hidden;
+    }
+
     HiArgs::from_low_args(low_args)
 }
 
@@ -218,6 +226,7 @@ fn pyargs_to_hiargs(py_args: &PyArgs, mode: lowargs::Mode) -> anyhow::Result<HiA
     max_count=None,
     line_number=None,
     multiline=None,
+    hidden=None,
 ))]
 pub fn py_search(
     py: Python<'_>,
@@ -234,6 +243,7 @@ pub fn py_search(
     max_count: Option<u64>,
     line_number: Option<bool>,
     multiline: Option<bool>,
+    hidden: Option<bool>,
 ) -> PyResult<Vec<String>> {
     py.allow_threads(|| {
         let py_args = PyArgs {
@@ -250,6 +260,7 @@ pub fn py_search(
             max_count,
             line_number,
             multiline,
+            hidden,
         };
 
         let args_result = pyargs_to_hiargs(&py_args, lowargs::Mode::default());
@@ -344,6 +355,7 @@ fn py_search_impl(args: &HiArgs) -> anyhow::Result<Vec<String>> {
     max_count=None,
     line_number=None,
     multiline=None,
+    hidden=None,
 ))]
 pub fn py_files(
     py: Python<'_>,
@@ -360,6 +372,7 @@ pub fn py_files(
     max_count: Option<u64>,
     line_number: Option<bool>,
     multiline: Option<bool>,
+    hidden: Option<bool>,
 ) -> PyResult<Vec<String>> {
     py.allow_threads(|| {
         let py_args = PyArgs {
@@ -376,6 +389,7 @@ pub fn py_files(
             max_count,
             line_number,
             multiline,
+            hidden,
         };
 
         let args_result = pyargs_to_hiargs(&py_args, lowargs::Mode::Files);

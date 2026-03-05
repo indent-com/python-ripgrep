@@ -89,6 +89,7 @@ The following is a checklist of ripgrep flags that have been implemented in this
 - [x] `separator_field_match`: (Optional) Separator between fields in matching lines
 - [x] `separator_context`: (Optional) Separator between context lines
 - [x] `-U, --multiline`: Enable matching across multiple lines
+- [x] `-., --hidden`: Search hidden files and directories
 
 The following flags from ripgrep are not yet implemented in this wrapper:
 
