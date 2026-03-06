@@ -11,7 +11,7 @@ level logic around it.
 
 use std::path::Path;
 
-use crate::{ignore_message, err_message, message, eprintln_locked};
+use crate::{eprintln_locked, err_message, ignore_message, message};
 
 /// A builder for constructing things to search over.
 #[derive(Clone, Debug)]
@@ -22,7 +22,9 @@ pub(crate) struct HaystackBuilder {
 impl HaystackBuilder {
     /// Return a new haystack builder with a default configuration.
     pub(crate) fn new() -> HaystackBuilder {
-        HaystackBuilder { strip_dot_prefix: false }
+        HaystackBuilder {
+            strip_dot_prefix: false,
+        }
     }
 
     /// Create a new haystack from a possibly missing directory entry.
@@ -49,7 +51,10 @@ impl HaystackBuilder {
     /// searched, then this returns `None` after emitting any relevant log
     /// messages.
     fn build(&self, dent: ignore::DirEntry) -> Option<Haystack> {
-        let hay = Haystack { dent, strip_dot_prefix: self.strip_dot_prefix };
+        let hay = Haystack {
+            dent,
+            strip_dot_prefix: self.strip_dot_prefix,
+        };
         if let Some(err) = hay.dent.error() {
             ignore_message!("{err}");
         }
@@ -84,10 +89,7 @@ impl HaystackBuilder {
     /// stripped.
     ///
     /// This is useful when implicitly searching the current working directory.
-    pub(crate) fn strip_dot_prefix(
-        &mut self,
-        yes: bool,
-    ) -> &mut HaystackBuilder {
+    pub(crate) fn strip_dot_prefix(&mut self, yes: bool) -> &mut HaystackBuilder {
         self.strip_dot_prefix = yes;
         self
     }

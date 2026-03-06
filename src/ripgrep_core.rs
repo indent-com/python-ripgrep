@@ -1,15 +1,17 @@
-use std::{borrow::BorrowMut, ffi::{OsStr, OsString}};
 use hiargs::HiArgs;
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
+use std::{
+    borrow::BorrowMut,
+    ffi::{OsStr, OsString},
+};
 
-mod search;
+mod haystack;
 mod hiargs;
 mod lowargs;
-mod haystack;
+mod search;
 #[macro_use]
 mod messages;
-
 
 #[pyclass]
 pub struct PyArgs {
@@ -33,14 +35,14 @@ pub struct PyArgs {
 impl PyArgs {
     #[new]
     #[pyo3(signature = (
-        patterns, 
-        paths=None, 
-        globs=None, 
-        heading=None, 
+        patterns,
+        paths=None,
+        globs=None,
+        heading=None,
         after_context=None,
         before_context=None,
-        separator_field_context=None, 
-        separator_field_match=None, 
+        separator_field_context=None,
+        separator_field_match=None,
         separator_context=None,
         sort=None,
         max_count=None,
@@ -49,8 +51,8 @@ impl PyArgs {
         hidden=None,
     ))]
     fn new(
-        patterns: Vec<String>, 
-        paths: Option<Vec<String>>, 
+        patterns: Vec<String>,
+        paths: Option<Vec<String>>,
         globs: Option<Vec<String>>,
         heading: Option<bool>,
         after_context: Option<u64>,
@@ -83,7 +85,6 @@ impl PyArgs {
     }
 }
 
-
 #[pyclass(eq)]
 #[derive(PartialEq, Clone)]
 #[pyo3(get_all)]
@@ -96,17 +97,10 @@ pub struct PySortMode {
 impl PySortMode {
     #[new]
     #[pyo3(signature = (kind, reverse=false))]
-    fn new(
-        kind: PySortModeKind,
-        reverse: bool,
-    ) -> Self {
-        PySortMode {
-            kind,
-            reverse,
-        }
+    fn new(kind: PySortModeKind, reverse: bool) -> Self {
+        PySortMode { kind, reverse }
     }
 }
-
 
 #[pyclass(eq)]
 #[derive(PartialEq, Clone)]
@@ -119,13 +113,15 @@ pub enum PySortModeKind {
 }
 
 fn build_patterns(patterns: Vec<String>) -> Vec<lowargs::PatternSource> {
-    patterns.into_iter().map(|pattern| lowargs::PatternSource::Regexp(pattern)).collect()
+    patterns
+        .into_iter()
+        .map(|pattern| lowargs::PatternSource::Regexp(pattern))
+        .collect()
 }
 
 fn build_paths(paths: Vec<String>) -> Vec<OsString> {
     paths.into_iter().map(|path| OsString::from(path)).collect()
 }
-
 
 fn build_sort_mode_kind(kind: PySortModeKind) -> lowargs::SortModeKind {
     match kind {
@@ -138,13 +134,19 @@ fn build_sort_mode_kind(kind: PySortModeKind) -> lowargs::SortModeKind {
 
 fn build_sort_mode(sort: Option<PySortMode>) -> Option<lowargs::SortMode> {
     if let Some(sort_mode) = sort {
-        Some(lowargs::SortMode { kind: build_sort_mode_kind(sort_mode.kind), reverse: sort_mode.reverse })
+        Some(lowargs::SortMode {
+            kind: build_sort_mode_kind(sort_mode.kind),
+            reverse: sort_mode.reverse,
+        })
     } else {
         None
     }
 }
 
-fn build_context_mode(after_context: Option<u64>, before_context: Option<u64>) -> lowargs::ContextMode {
+fn build_context_mode(
+    after_context: Option<u64>,
+    before_context: Option<u64>,
+) -> lowargs::ContextMode {
     let mut context_mode = lowargs::ContextMode::default();
 
     if let Some(after) = after_context {
@@ -209,7 +211,6 @@ fn pyargs_to_hiargs(py_args: &PyArgs, mode: lowargs::Mode) -> anyhow::Result<HiA
     HiArgs::from_low_args(low_args)
 }
 
-
 #[pyfunction]
 #[pyo3(name = "search")]
 #[pyo3(signature = (
@@ -268,7 +269,7 @@ pub fn py_search(
         if let Err(err) = args_result {
             return Err(PyValueError::new_err(err.to_string()));
         }
-        
+
         let args = args_result.unwrap();
 
         let search_result = py_search_impl(&args);
@@ -280,8 +281,6 @@ pub fn py_search(
         Ok(search_result.unwrap())
     })
 }
-
-
 
 fn py_search_impl(args: &HiArgs) -> anyhow::Result<Vec<String>> {
     let haystack_builder = args.haystack_builder();
@@ -297,11 +296,7 @@ fn py_search_impl(args: &HiArgs) -> anyhow::Result<Vec<String>> {
 
     let mut results = Vec::new();
 
-    let mut searcher = args.search_worker(
-        args_matcher,
-        args_searcher,
-        args_printer,
-    )?;
+    let mut searcher = args.search_worker(args_matcher, args_searcher, args_printer)?;
 
     for haystack in haystacks {
         let search_result = match searcher.search(&haystack) {
@@ -314,7 +309,7 @@ fn py_search_impl(args: &HiArgs) -> anyhow::Result<Vec<String>> {
             }
         };
 
-        if search_result.has_match() {     
+        if search_result.has_match() {
             let printer = searcher.printer();
             let results_vec = printer.get_mut().borrow_mut();
 
@@ -337,7 +332,6 @@ fn py_search_impl(args: &HiArgs) -> anyhow::Result<Vec<String>> {
 
     Ok(results)
 }
-
 
 #[pyfunction]
 #[pyo3(name = "files")]
@@ -397,7 +391,7 @@ pub fn py_files(
         if let Err(err) = args_result {
             return Err(PyValueError::new_err(err.to_string()));
         }
-        
+
         let args = args_result.unwrap();
 
         let files_result = py_files_impl(&args);
@@ -409,7 +403,6 @@ pub fn py_files(
         Ok(files_result.unwrap())
     })
 }
-
 
 fn py_files_impl(args: &HiArgs) -> anyhow::Result<Vec<String>> {
     let haystack_builder = args.haystack_builder();
@@ -434,9 +427,7 @@ fn py_files_impl(args: &HiArgs) -> anyhow::Result<Vec<String>> {
             }
         }
 
-        let haystack_path = haystack
-            .path()
-            .to_str();
+        let haystack_path = haystack.path().to_str();
 
         if let Some(path) = haystack_path {
             matches.push(path.to_string());

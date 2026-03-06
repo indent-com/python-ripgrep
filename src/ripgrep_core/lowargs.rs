@@ -385,10 +385,9 @@ impl ContextMode {
                     both: None,
                 })
             }
-            ContextMode::Limited(ContextModeLimited {
-                ref mut before,
-                ..
-            }) => *before = Some(lines),
+            ContextMode::Limited(ContextModeLimited { ref mut before, .. }) => {
+                *before = Some(lines)
+            }
         }
     }
 
@@ -406,9 +405,7 @@ impl ContextMode {
                     both: None,
                 })
             }
-            ContextMode::Limited(ContextModeLimited {
-                ref mut after, ..
-            }) => *after = Some(lines),
+            ContextMode::Limited(ContextModeLimited { ref mut after, .. }) => *after = Some(lines),
         }
     }
 
@@ -426,9 +423,7 @@ impl ContextMode {
                     both: Some(lines),
                 })
             }
-            ContextMode::Limited(ContextModeLimited {
-                ref mut both, ..
-            }) => *both = Some(lines),
+            ContextMode::Limited(ContextModeLimited { ref mut both, .. }) => *both = Some(lines),
         }
     }
 
@@ -470,8 +465,7 @@ impl ContextModeLimited {
     ///
     /// By default, this returns `(0, 0)`.
     pub(crate) fn get(&self) -> (usize, usize) {
-        let (mut before, mut after) =
-            self.both.map(|lines| (lines, lines)).unwrap_or((0, 0));
+        let (mut before, mut after) = self.both.map(|lines| (lines, lines)).unwrap_or((0, 0));
         // --before and --after always override --context, regardless
         // of where they appear relative to each other.
         if let Some(lines) = self.before {
@@ -717,27 +711,21 @@ impl SortMode {
                     .and_then(|p| p.metadata())
                     .and_then(|md| md.modified());
                 let Err(err) = md else { return Ok(()) };
-                anyhow::bail!(
-                    "sorting by last modified isn't supported: {err}"
-                );
+                anyhow::bail!("sorting by last modified isn't supported: {err}");
             }
             SortModeKind::LastAccessed => {
                 let md = std::env::current_exe()
                     .and_then(|p| p.metadata())
                     .and_then(|md| md.accessed());
                 let Err(err) = md else { return Ok(()) };
-                anyhow::bail!(
-                    "sorting by last accessed isn't supported: {err}"
-                );
+                anyhow::bail!("sorting by last accessed isn't supported: {err}");
             }
             SortModeKind::Created => {
                 let md = std::env::current_exe()
                     .and_then(|p| p.metadata())
                     .and_then(|md| md.created());
                 let Err(err) = md else { return Ok(()) };
-                anyhow::bail!(
-                    "sorting by creation time isn't supported: {err}"
-                );
+                anyhow::bail!("sorting by creation time isn't supported: {err}");
             }
         }
     }
