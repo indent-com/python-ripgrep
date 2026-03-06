@@ -32,3 +32,8 @@ bstr = "1.7.0"
 
 [lints.rust]
 dead_code = "allow"
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(feature, values("pcre2"))'] }
+
+[lints.clippy]
+upper_case_acronyms = "allow"
+useless_conversion = "allow"

@@ -50,6 +50,7 @@ impl PyArgs {
         multiline=None,
         hidden=None,
     ))]
+    #[allow(clippy::too_many_arguments)]
     fn new(
         patterns: Vec<String>,
         paths: Option<Vec<String>>,
@@ -115,12 +116,12 @@ pub enum PySortModeKind {
 fn build_patterns(patterns: Vec<String>) -> Vec<lowargs::PatternSource> {
     patterns
         .into_iter()
-        .map(|pattern| lowargs::PatternSource::Regexp(pattern))
+        .map(lowargs::PatternSource::Regexp)
         .collect()
 }
 
 fn build_paths(paths: Vec<String>) -> Vec<OsString> {
-    paths.into_iter().map(|path| OsString::from(path)).collect()
+    paths.into_iter().map(OsString::from).collect()
 }
 
 fn build_sort_mode_kind(kind: PySortModeKind) -> lowargs::SortModeKind {
@@ -161,21 +162,16 @@ fn build_context_mode(
 }
 
 fn pyargs_to_hiargs(py_args: &PyArgs, mode: lowargs::Mode) -> anyhow::Result<HiArgs> {
-    let mut low_args = lowargs::LowArgs::default();
-
-    low_args.patterns = build_patterns(py_args.patterns.clone());
-
-    low_args.mode = mode;
-
-    low_args.sort = build_sort_mode(py_args.sort.clone());
-
-    low_args.heading = py_args.heading;
-
-    low_args.max_count = py_args.max_count;
-
-    low_args.line_number = py_args.line_number;
-
-    low_args.context = build_context_mode(py_args.after_context, py_args.before_context);
+    let mut low_args = lowargs::LowArgs {
+        patterns: build_patterns(py_args.patterns.clone()),
+        mode,
+        sort: build_sort_mode(py_args.sort.clone()),
+        heading: py_args.heading,
+        max_count: py_args.max_count,
+        line_number: py_args.line_number,
+        context: build_context_mode(py_args.after_context, py_args.before_context),
+        ..Default::default()
+    };
 
     if let Some(globs) = &py_args.globs {
         low_args.globs = globs.clone();
@@ -187,17 +183,17 @@ fn pyargs_to_hiargs(py_args: &PyArgs, mode: lowargs::Mode) -> anyhow::Result<HiA
 
     if let Some(separator_field_context) = &py_args.separator_field_context {
         let sep = OsStr::new(separator_field_context);
-        low_args.field_context_separator = lowargs::FieldContextSeparator::new(&sep).unwrap();
+        low_args.field_context_separator = lowargs::FieldContextSeparator::new(sep).unwrap();
     }
 
     if let Some(separator_field_match) = &py_args.separator_field_match {
         let sep = OsStr::new(separator_field_match);
-        low_args.field_match_separator = lowargs::FieldMatchSeparator::new(&sep).unwrap();
+        low_args.field_match_separator = lowargs::FieldMatchSeparator::new(sep).unwrap();
     }
 
     if let Some(separator_context) = &py_args.separator_context {
         let sep = OsStr::new(separator_context);
-        low_args.context_separator = lowargs::ContextSeparator::new(&sep).unwrap();
+        low_args.context_separator = lowargs::ContextSeparator::new(sep).unwrap();
     }
 
     if let Some(multiline) = py_args.multiline {
@@ -229,6 +225,7 @@ fn pyargs_to_hiargs(py_args: &PyArgs, mode: lowargs::Mode) -> anyhow::Result<HiA
     multiline=None,
     hidden=None,
 ))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_search(
     py: Python<'_>,
     patterns: Vec<String>,
@@ -351,6 +348,7 @@ fn py_search_impl(args: &HiArgs) -> anyhow::Result<Vec<String>> {
     multiline=None,
     hidden=None,
 ))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_files(
     py: Python<'_>,
     patterns: Vec<String>,

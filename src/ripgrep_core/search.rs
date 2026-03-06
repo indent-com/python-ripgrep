@@ -279,7 +279,7 @@ impl<W: WriteColor> SearchWorker<W> {
     /// Returns true if and only if the given file path should be run through
     /// the preprocessor.
     fn should_preprocess(&self, path: &Path) -> bool {
-        if !self.config.preprocessor.is_some() {
+        if self.config.preprocessor.is_none() {
             return false;
         }
         if self.config.preprocessor_globs.is_empty() {
@@ -302,16 +302,13 @@ impl<W: WriteColor> SearchWorker<W> {
         cmd.arg(path).stdin(Stdio::from(File::open(path)?));
 
         let mut rdr = self.command_builder.build(&mut cmd).map_err(|err| {
-            io::Error::new(
-                io::ErrorKind::Other,
-                format!("preprocessor command could not start: '{:?}': {}", cmd, err,),
-            )
+            io::Error::other(format!(
+                "preprocessor command could not start: '{:?}': {}",
+                cmd, err,
+            ))
         })?;
         let result = self.search_reader(path, &mut rdr).map_err(|err| {
-            io::Error::new(
-                io::ErrorKind::Other,
-                format!("preprocessor command failed: '{:?}': {}", cmd, err),
-            )
+            io::Error::other(format!("preprocessor command failed: '{:?}': {}", cmd, err))
         });
         let close_result = rdr.close();
         let search_result = result?;
@@ -378,7 +375,7 @@ fn search_path<M: Matcher, W: WriteColor>(
             searcher.search_path(&matcher, path, &mut sink)?;
             Ok(SearchResult {
                 has_match: sink.has_match(),
-                stats: sink.stats().map(|s| s.clone()),
+                stats: sink.stats().cloned(),
             })
         }
         Printer::Summary(ref mut p) => {
@@ -386,7 +383,7 @@ fn search_path<M: Matcher, W: WriteColor>(
             searcher.search_path(&matcher, path, &mut sink)?;
             Ok(SearchResult {
                 has_match: sink.has_match(),
-                stats: sink.stats().map(|s| s.clone()),
+                stats: sink.stats().cloned(),
             })
         }
         Printer::JSON(ref mut p) => {
@@ -415,7 +412,7 @@ fn search_reader<M: Matcher, R: io::Read, W: WriteColor>(
             searcher.search_reader(&matcher, &mut rdr, &mut sink)?;
             Ok(SearchResult {
                 has_match: sink.has_match(),
-                stats: sink.stats().map(|s| s.clone()),
+                stats: sink.stats().cloned(),
             })
         }
         Printer::Summary(ref mut p) => {
@@ -423,7 +420,7 @@ fn search_reader<M: Matcher, R: io::Read, W: WriteColor>(
             searcher.search_reader(&matcher, &mut rdr, &mut sink)?;
             Ok(SearchResult {
                 has_match: sink.has_match(),
-                stats: sink.stats().map(|s| s.clone()),
+                stats: sink.stats().cloned(),
             })
         }
         Printer::JSON(ref mut p) => {
